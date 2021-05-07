@@ -15,6 +15,7 @@ from sklearn.metrics import auc
 from sklearn.metrics import f1_score
 from sklearn.model_selection import RepeatedStratifiedKFold, cross_val_score, train_test_split
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from xgboost import XGBClassifier
 
 
 def load_dataset(full_path):
@@ -74,60 +75,33 @@ X = X.drop(['workclass', 'education', 'marital.status', 'race', 'gender'], axis=
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 print(X_train.values)
-print(X_train.shape)
-print(y_train.shape)
+print(X_train)
+print(y_train)
 
 scaler = MinMaxScaler()
 X_train = scaler.fit_transform(X_train.values)
 
-k_values = [3, 4, 5, 6, 7]
-model1 = RandomForestClassifier(n_estimators=50,
-                                max_depth=10,
-                                min_samples_split=400,
-                                max_features=10
-                                )
-for k in k_values:
-    # define pipeline
-    print('----------------------------------------------------')
-    print(Counter(y_train))
-    oversample = KMeansSMOTE(sampling_strategy=0.5, k_neighbors=3)
-    X_train, y_train = oversample.fit_resample(X_train, y_train)
-    print(Counter(y_train))
+model1 = XGBClassifier(n_estimators=50,
+                       learning_rate=0.1,
+                       max_depth=10,
+                       min_samples_split=400,
+                       max_features=10
+                       )
 
-    model1 = model1.fit(X_train, y_train)
-    scores1 = evaluate_model(X_train, y_train, model1)
-    y_pre1 = model1.predict(X_test)
-    fpr, tpr, thres = metrics.roc_curve(y_test, y_pre1)
-    auc_ = auc(fpr, tpr)
+print('----------------------------------------------------')
+print(Counter(y_train))
+# oversample = KMeansSMOTE(sampling_strategy=0.5, k_neighbors=3)
+# X_train, y_train = oversample.fit_resample(X_train, y_train)
+print(Counter(y_train))
+print(X_train)
+print(y_train)
+model1 = model1.fit(X_train, y_train)
+scores1 = evaluate_model(X_train, y_train, model1)
+y_pre1 = model1.predict(X_test)
+fpr, tpr, thres = metrics.roc_curve(y_test, y_pre1)
+auc_ = auc(fpr, tpr)
 
-    print('k:',k)
-    print('Scores: ', mean(scores1))
-    print('Accuracy: ', accuracy_score(y_test, y_pre1))
-    print('F1-score: ', f1_score(y_test, y_pre1))
-    print('AUC: ', auc_)
-
-    # # evaluate pipeline
-    # cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
-    # scores = cross_val_score(pipeline, X, y, scoring='roc_auc', cv=cv, n_jobs=-1)
-    # score = mean(scores)
-    # print('> k=%d, Mean ROC AUC: %.3f' % (k, score))
-
-# smotes = {0: 'SMOTE',
-#           1: 'BorderlineSMOTE',
-#           2: 'SVMSMOTE',
-#           3: 'ADASYN'}
-#
-# for i, sampler in enumerate((SMOTE(sampling_strategy=0.35, random_state=0),
-#                              BorderlineSMOTE(sampling_strategy=0.35, random_state=0, kind='borderline-1'),
-#                              SVMSMOTE(sampling_strategy=0.35, random_state=0),
-#                              ADASYN(sampling_strategy=0.35, random_state=0))):
-#     pipe_line = make_pipeline(sampler, model1)
-#     pipe_line.fit(X_train, y_train)
-#     y_pre1 = pipe_line.predict(X_test)
-#     fpr1, tpr1, thres = metrics.roc_curve(y_test, y_pre1)
-#     auc_ = auc(fpr1, tpr1)
-#     print('------------------------------------------------')
-#     print('SMOTE method: ', smotes[i])
-#     print('Accuracy1: ', accuracy_score(y_test, y_pre1))
-#     print('F1-score1: ', f1_score(y_test, y_pre1))
-#     print('AUC1: ', auc(fpr1, tpr1))
+print('Scores: ', mean(scores1))
+print('Accuracy: ', accuracy_score(y_test, y_pre1))
+print('F1-score: ', f1_score(y_test, y_pre1))
+print('AUC: ', auc_)

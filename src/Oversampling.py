@@ -15,6 +15,7 @@ from sklearn.model_selection import RepeatedStratifiedKFold, cross_val_score, tr
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
 import lightgbm as lgb
 
+
 def load_dataset(full_path):
     dataframe = read_csv(full_path, na_values='?')
     # dataframe.info(verbose=True)
@@ -51,7 +52,7 @@ def acc(y_true, y_pred):
 
 def _plot_roc_curve(fpr, tpr, auc_):
     plt.title('Receiver Operating Characteristic - ROC')
-    plt.plot(fpr, tpr, 'b-',label = 'AUC = %0.2f' % auc_)
+    plt.plot(fpr, tpr, 'b-', label='AUC = %0.2f' % auc_)
     plt.legend(loc='lower right')
     plt.plot([0, 1], [0, 1], 'r--')
     plt.axis([0, 1, 0, 1])
@@ -63,7 +64,7 @@ def _plot_roc_curve(fpr, tpr, auc_):
 # From data
 X, y, cat_ix, num_ix = load_dataset("C:\\Users\\MSI\Desktop\\vnpt-project\\python\\data\\data_adult.csv")
 sum_lable(y)
-cat_ix = cat_ix.drop(['race','gender'])
+cat_ix = cat_ix.drop(['race', 'gender'])
 
 print(cat_ix)
 X = pd.concat([X, pd.get_dummies(X[cat_ix])], axis=1)
@@ -102,7 +103,6 @@ model1 = RandomForestClassifier(n_estimators=50,
                                 max_depth=10,
                                 min_samples_split=400,
                                 max_features=10)
-
 
 # model2 = RandomForestClassifier(n_estimators=100,
 #                                 max_depth=8,
@@ -144,14 +144,14 @@ model1 = RandomForestClassifier(n_estimators=50,
 
 print(Counter(y_train))
 # oversample = RandomOverSampler(sampling_strategy=0.50)
-oversample = KMeansSMOTE(sampling_strategy=0.5, k_neighbors=3)
+oversample = KMeansSMOTE(sampling_strategy=0.5, k_neighbors=4, cluster_balance_threshold=0.40)
 X_train, y_train = oversample.fit_resample(X_train, y_train)
 print(Counter(y_train))
 model1 = model1.fit(X_train, y_train)
 scores1 = evaluate_model(X_train, y_train, model1)
 y_pre1 = model1.predict(X_test)
 fpr, tpr, thres = metrics.roc_curve(y_test, y_pre1)
-auc_ = auc(fpr,tpr)
+auc_ = auc(fpr, tpr)
 
 print('Scores: ', mean(scores1))
 print('Accuracy: ', accuracy_score(y_test, y_pre1))
